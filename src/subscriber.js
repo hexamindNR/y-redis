@@ -10,7 +10,7 @@ import * as array from 'lib0/array'
  * @param {Subscriber} subscriber
  */
 const run = async subscriber => {
-  while (true) {
+  while (!subscriber.client._destroyed) {
     try {
       const ms = await subscriber.client.getMessages(array.from(subscriber.subs.entries()).map(([stream, s]) => ({ key: stream, id: s.id })))
       for (let i = 0; i < ms.length; i++) {
@@ -25,7 +25,9 @@ const run = async subscriber => {
         sub.fs.forEach(f => f(m.stream, m.messages))
       }
     } catch (e) {
-      console.error(e)
+      if (!subscriber.client._destroyed) {
+        console.error(e)
+      }
     }
   }
 }
