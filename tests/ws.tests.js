@@ -52,14 +52,14 @@ const createApiClient = async () => {
  * @param {t.TestCase} tc
  */
 const createTestCase = async tc => {
-  await promise.all(utils.prevClients.map(c => c.destroy()))
+  await promise.all(utils.prevClients.map(c => c.destroy().catch(() => {})))
   utils.prevClients.length = 0
   const redisClient = redis.createClient({ url: api.redisUrl })
   await redisClient.connect()
   // flush existing content
   const keysToDelete = await redisClient.keys(utils.redisPrefix + ':*')
   await redisClient.del(keysToDelete)
-  utils.prevClients.push({ destroy: () => redisClient.quit().then(() => {}) })
+  utils.prevClients.push({ destroy: () => redisClient.quit().catch(() => {}) })
   const server = await createServer()
   const [apiClient, worker] = await promise.all([createApiClient(), createWorker()])
   return {
